@@ -10,7 +10,7 @@ class ToDoListController extends Controller
     // Display all tasks
     public function index()
     {
-        $tasks = TodoTask::all(); // Fetch all tasks from the database
+        $tasks = TodoTask::all(); 
         return view('app-pages.todo-listing', compact('tasks'));
     }
 

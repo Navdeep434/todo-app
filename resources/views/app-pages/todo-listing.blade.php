@@ -21,14 +21,15 @@
                 <input type="text" name="task" id="task-input" class="form-control col-md-8 me-2" placeholder="Enter your task" required>
                 <button type="submit" class="col-md-4 btn btn-primary">Add Task</button>
             </form>
-            <!-- Filter Button -->
-                <div class="col-md-4 d-flex justify-content-center">
-                    <button id="filter-toggle" class="btn btn-secondary">Show All</button>
-                </div>
         </div>
     </div>
 
-    
+    <!-- Filter Button -->
+    <div class="row mb-4">
+        <div class="col-md-12 d-flex justify-content-center">
+            <button id="filter-toggle" class="btn btn-secondary">Show All</button>
+        </div>
+    </div>
 
     <!-- Listing of Tasks -->
     <div class="row justify-content-center">
@@ -88,7 +89,7 @@
 <script>
     $(document).ready(function() {
         let taskIdToDelete = null;
-        let filterState = 'pending'; // Initial filter state set to 'pending'
+        let filterState = 'all';
 
         // Function to create a notification popup
         function showNotification(message, type = 'success') {
@@ -123,17 +124,15 @@
                             <td>${response.task.name}</td>
                             <td>${response.task.status}</td>
                             <td>
-                                @if($task->status == 'Pending')
-                                    <button class="btn btn-success btn-sm mark-done">
-                                        <i class="bi bi-check2-square"></i>
-                                    </button>
-                                @endif
+                                <button class="btn btn-success btn-sm mark-done">
+                                    <i class="bi bi-check2-square"></i>
+                                </button>
                                 <button class="btn btn-danger btn-sm delete-task"><i class="bi bi-x"></i></button>
                             </td>
                         </tr>
                     `;
                     $('#task-table tbody').append(newRow);
-                    $('#task-input').val(''); // Clear input field
+                    $('#task-input').val('');
                     showNotification('Task added successfully!');
                 },
                 error: function(xhr) {
@@ -154,8 +153,16 @@
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    $row.find('td').eq(2).text('Done'); // Update status
-                    $row.addClass('d-none done-task'); // Hide the row
+                    $row.find('td').eq(2).text('Done');
+                    $row.find('.mark-done').remove();
+                    
+                    // Check the filter state before adding 'd-none' class
+                    if (filterState === 'pending') {
+                        $row.addClass('d-none done-task');
+                    } else {
+                        $row.removeClass('d-none');
+                    }
+                    
                     showNotification('Task marked as done!');
                 }
             });
@@ -179,22 +186,22 @@
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        $(`tr[data-id="${taskIdToDelete}"]`).remove(); // Remove the row from the table
+                        $(`tr[data-id="${taskIdToDelete}"]`).remove();
                         $('#task-table tbody tr').each(function(index) {
-                            $(this).find('td').eq(0).text(index + 1); // Update row numbers
+                            $(this).find('td').eq(0).text(index + 1);
                         });
                         showNotification('Task deleted successfully!');
                         const modal = bootstrap.Modal.getInstance(document.getElementById('confirm-delete-modal'));
-                        modal.hide(); // Hide the modal
-                        $('body').removeClass('modal-open'); // Remove the modal-open class
-                        $('.modal-backdrop').remove(); // Remove any modal-backdrop
+                        modal.hide();
+                        $('body').removeClass('modal-open');
+                        $('.modal-backdrop').remove();
                     },
                     error: function(xhr) {
                         showNotification('An error occurred while deleting the task.', 'error');
                         const modal = bootstrap.Modal.getInstance(document.getElementById('confirm-delete-modal'));
-                        modal.hide(); // Hide the modal
-                        $('body').removeClass('modal-open'); // Remove the modal-open class
-                        $('.modal-backdrop').remove(); // Remove any modal-backdrop
+                        modal.hide();
+                        $('body').removeClass('modal-open');
+                        $('.modal-backdrop').remove();
                     }
                 });
             }
@@ -206,19 +213,20 @@
                 $('#task-table tbody tr').each(function() {
                     const status = $(this).find('td').eq(2).text().trim();
                     if (status === 'Done') {
-                        $(this).addClass('d-none'); // Hide completed tasks
+                        $(this).addClass('d-none');
                     } else {
-                        $(this).removeClass('d-none'); // Show pending tasks
+                        $(this).removeClass('d-none');
                     }
                 });
                 $('#filter-toggle').text('Show All');
             } else {
-                $('#task-table tbody tr').removeClass('d-none'); // Show all tasks
+                $('#task-table tbody tr').removeClass('d-none');
                 $('#filter-toggle').text('Show Pending');
             }
         }
 
-        // Apply initial filter state to show only pending tasks
+        // Initial filter application to 'Show All'
+        filterState = 'pending';
         applyFilter();
 
         // Handle button click
@@ -227,7 +235,6 @@
             applyFilter();
         });
     });
-
 
 
 </script>
